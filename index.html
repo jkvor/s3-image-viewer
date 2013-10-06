@@ -6,28 +6,44 @@
         padding: 15px;
       }
 
-      ul {
-        list-style: none;
+      #images {
         margin: 0;
         padding: 0;
+        width: 600px;
       }
 
-      ul li {
-        line-height: 1.4;
+      .image-cell {
+        float: left;
+        padding: 10px;
       }
     </style>
 
     <script>
       var host = location.origin.replace(/^http/, 'ws')
       var ws = new WebSocket(host);
-      ws.onmessage = function (event) {
-        var img = document.createElement('img');
-        img.src = 'data:image/jpeg;base64, ' + event.data;
-        document.querySelector('#images').appendChild(img);
+      var marker = '';
+
+      function load_images() {
+        document.querySelector('#images').innerHTML = '';
+        ws.send(marker);
+        ws.onmessage = function (event) {
+          var image_data = JSON.parse(event.data);
+          marker = image_data.Marker;
+          var img = document.createElement('img');
+          img.src = 'data:image/jpeg;base64, ' + image_data.Body;
+          img.className = 'image-cell';
+          img.alt = image_data.Modified;
+          document.querySelector('#images').appendChild(img);
+        };
+      }
+
+      ws.onopen = function (event) {
+        load_images();
       };
     </script>
   </head>
   <body>
-    <ul id='images'></ul>
+    <a href="javascript:void(0)" onclick="load_images();">LOAD NEXT</a></br>
+    <div id='images'></div>
   </body>
 </html>
