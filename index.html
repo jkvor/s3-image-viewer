@@ -26,7 +26,6 @@
       var marker = '';
 
       function load_images() {
-        document.querySelector('#images').innerHTML = '';
         ws.send(marker);
         ws.onmessage = function (event) {
           var image_data = JSON.parse(event.data);
@@ -45,11 +44,9 @@
     </script>
   </head>
   <body>
-    <a href="javascript:void(0)" onclick="load_images();">LOAD NEXT</a></br>
-    <br/>
     <div id='images'></div>
     <div style="clear:both"></div>
     <br/>
-    <a href="javascript:void(0)" onclick="load_images();">LOAD NEXT</a></br>
+    <a href="javascript:void(0)" onclick="load_images();">LOAD MORE</a></br>
   </body>
 </html>
