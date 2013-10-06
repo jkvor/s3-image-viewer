@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <style>
+      body {
+        font-family: "Helvetica Neue", helvetica, arial;
+        padding: 15px;
+      }
+
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      ul li {
+        line-height: 1.4;
+      }
+    </style>
+
+    <script>
+      var host = location.origin.replace(/^http/, 'ws')
+      var ws = new WebSocket(host);
+      ws.onmessage = function (event) {
+        var img = document.createElement('img');
+        img.src = 'data:image/jpeg;base64, ' + event.data;
+        document.querySelector('#images').appendChild(img);
+      };
+    </script>
+  </head>
+  <body>
+    <ul id='images'></ul>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "s3-image-viewer",
+  "version": "0.0.1",
+  "dependencies": {
+    "aws-sdk": "1.7.x",
+    "ws": "0.4.x",
+    "express": "3.x"
+  },
+  "engines": {
+    "node": "0.10.x",
+    "npm": "1.2.x"
+  }
+}
