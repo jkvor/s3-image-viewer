@@ -3,7 +3,9 @@
     <style>
       body {
         font-family: "Helvetica Neue", helvetica, arial;
-        padding: 15px;
+        padding: 0px;
+        margin: 0px;
+        margin-top: 8px;
       }
 
       #images {
@@ -14,7 +16,7 @@
 
       .image-cell {
         float: left;
-        padding: 10px;
+        padding-bottom: 10px;
       }
     </style>
 
@@ -44,6 +46,10 @@
   </head>
   <body>
     <a href="javascript:void(0)" onclick="load_images();">LOAD NEXT</a></br>
+    <br/>
     <div id='images'></div>
+    <div style="clear:both"></div>
+    <br/>
+    <a href="javascript:void(0)" onclick="load_images();">LOAD NEXT</a></br>
   </body>
 </html>

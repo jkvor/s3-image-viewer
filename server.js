@@ -21,7 +21,7 @@ var s3 = new AWS.S3();
 
 
 function stream_images(marker, ws) {
-  s3.listObjects({Bucket: s3_bucket_name, Prefix: s3_image_prefix, MaxKeys: 3, Marker: marker}, function(err, data) {
+  s3.listObjects({Bucket: s3_bucket_name, Prefix: s3_image_prefix, MaxKeys: 5, Marker: marker}, function(err, data) {
     if(err != null) console.log("s3.listObjects [err]: " + err);
     if(data.Contents.length > 0) {
       var new_marker = data.Contents[data.Contents.length-1].Key
