@@ -14,6 +14,10 @@
         width: 600px;
       }
 
+      .lbl-cell {
+        float: left;
+      }
+
       .image-cell {
         float: left;
         padding-bottom: 10px;
@@ -21,19 +25,33 @@
     </style>
 
     <script>
+      // build the WebSocket host by taking the curent page url and replacing http with ws
+      // this has the added benefit of supporting both ws and wss depending on the page proto
       var host = location.origin.replace(/^http/, 'ws')
       var ws = new WebSocket(host);
+
+      // this is how we keep track of the last image we've pulled from s3 on the server side
+      // it is passed back to the server when requesting the next batch of images
       var marker = '';
 
       function load_images() {
         ws.send(marker);
         ws.onmessage = function (event) {
           var image_data = JSON.parse(event.data);
+
+          // record the latest image name
           marker = image_data.Marker;
+
+          // append a new label and image to the DOM
+          var lbl = document.createElement('div');
+          lbl.innerHTML = image_data.Modified;
+          lbl.className = 'lbl-cell';
+
           var img = document.createElement('img');
           img.src = 'data:image/jpeg;base64, ' + image_data.Body;
           img.className = 'image-cell';
-          img.alt = image_data.Modified;
+
+          document.querySelector('#images').appendChild(lbl);
           document.querySelector('#images').appendChild(img);
         };
       }
