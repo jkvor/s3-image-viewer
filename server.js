@@ -2,12 +2,13 @@ var WebSocketServer = require('ws').Server
   , http = require('http')
   , express = require('express')
   , app = express()
-  , moment = require('moment')
+  , moment = require('moment-timezone')
   , port = process.env.PORT || 5000
   , s3_bucket_name = process.env.S3_BUCKET_NAME
   , s3_image_prefix = process.env.S3_IMAGE_PREFIX
   , auth_user = process.env.AUTH_USER
   , auth_password = process.env.AUTH_PASSWORD
+  , timezone = process.env.MOMENT_TZ
   , s3_batch_size = 5;
 
 // setup express authentication and static assets
@@ -38,7 +39,7 @@ function stream_images(marker, ws) {
 function collect_and_stream_images(ws, list_data, index, payload, new_marker) {
   s3.getObject({Bucket: s3_bucket_name, Key: list_data.Contents[index].Key, ResponseContentType: "image/jpeg"}, function(err, obj_data) {
     if(err != null) console.log("s3.getObject [err]: " + err);
-    payload.push({Modified: moment(obj_data.LastModified).format("dddd, MMMM Do YYYY, h:mm:ss a"), Body: obj_data.Body.toString('base64')});
+    payload.push({Modified: moment(obj_data.LastModified).tz(timezone).format("dddd, MMMM Do YYYY, h:mm:ss a"), Body: obj_data.Body.toString('base64')});
     if (index == list_data.Contents.length-1) {
       console.log("sending " + payload.length + " images");
       ws.send(JSON.stringify({Marker: new_marker, Images: payload}), function() {});
