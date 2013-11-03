@@ -9,10 +9,14 @@
         color: #333333;
       }
 
-      #images {
-        margin: 0;
-        padding: 0;
+      #contents {
+        margin:0px auto;
         width: 800px;
+      }
+
+      #images {
+        margin: 0px;
+        padding: 0px;
       }
 
       .lbl-cell {
@@ -78,7 +82,7 @@
             }
           }
           document.querySelector('#btn_load').disabled = false;
-        document.querySelector('#btn_load').value = 'LOAD MORE';
+          document.querySelector('#btn_load').value = 'LOAD MORE';
         };
       }
 
@@ -88,8 +92,10 @@
     </script>
   </head>
   <body>
-    <div id='images'></div>
-    <div style="clear:both"></div>
-    <input id="btn_load" type="button" value="LOAD MORE" onclick="load_images();" />
+    <div id="contents">
+      <div id='images'></div>
+      <div style="clear:both"></div>
+      <input id="btn_load" type="button" value="LOAD MORE" onclick="load_images();" />
+    </div>
   </body>
 </html>
