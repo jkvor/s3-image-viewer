@@ -13,7 +13,7 @@ var WebSocketServer = require('ws').Server
 
 // setup express authentication and static assets
 app.use(express.basicAuth(auth_user, auth_password));
-app.use(express.static(__dirname + '/'));
+app.use(express.static(__dirname + '/public/'));
 
 // initiate http server
 var server = http.createServer(app);
