@@ -17,7 +17,6 @@ $ heroku config:add \
   AWS_ACCESS_KEY_ID= \
   AWS_SECRET_ACCESS_KEY= \
   S3_BUCKET_NAME= \
-  S3_IMAGE_PREFIX= \
   AUTH_USER= \
   AUTH_PASSWORD= \
   MOMENT_TZ="America/Los_Angeles"
