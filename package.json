@@ -2,11 +2,8 @@
   "name": "s3-image-viewer",
   "version": "0.0.1",
   "dependencies": {
-    "aws-sdk": "1.7.x",
-    "ws": "0.4.x",
     "express": "3.x",
-    "moment": "2.4.x",
-    "moment-timezone": "0.0.x"
+    "swig": "1.3.x"
   },
   "engines": {
     "node": "0.10.x",
