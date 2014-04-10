@@ -1,67 +1,47 @@
-var WebSocketServer = require('ws').Server
-  , http = require('http')
+var http = require('http')
   , express = require('express')
+  , swig = require('swig')
   , app = express()
-  , moment = require('moment-timezone')
-  , port = process.env.PORT || 5000
+  , amazon_client_id = process.env.AMAZON_CLIENT_ID
+  , app_domain = process.env.APP_DOMAIN
+  , aws_role_arn = process.env.AWS_ROLE_ARN
   , s3_bucket_name = process.env.S3_BUCKET_NAME
-  , s3_image_prefix = 's3iu.'
-  , auth_user = process.env.AUTH_USER
-  , auth_password = process.env.AUTH_PASSWORD
-  , timezone = process.env.MOMENT_TZ
-  , s3_batch_size = 5;
+  , port = process.env.PORT || 5000;
 
-// setup express authentication and static assets
-app.use(express.basicAuth(auth_user, auth_password));
+app.engine('html', swig.renderFile);
+app.set('view engine', 'html');
+app.set('views', __dirname + '/views');
 app.use(express.static(__dirname + '/public/'));
+
+app.get('/', function (req, res) {
+  serve_index(req, res); 
+});
+
+app.get('/images', function (req, res) {
+  var access_token = req.query.access_token;
+  if (access_token == null || access_token == '') {
+    serve_index(req, res);
+  } else {
+    serve_images(req, res);
+  }
+});
+
+function serve_index(req, res) {
+  res.render('index', {
+    amazon_client_id: amazon_client_id,
+    app_domain: app_domain
+  });
+}
+
+function serve_images(req, res) {
+  res.render('images', {
+    access_token: req.query.access_token,
+    aws_role_arn: aws_role_arn,
+    s3_bucket_name: s3_bucket_name
+  });
+}
 
 // initiate http server
 var server = http.createServer(app);
 server.listen(port);
 console.log('http server listening on %d', port);
-
-// establish connection to s3
-var AWS = require('aws-sdk');
-var s3 = new AWS.S3();
-
-function stream_images(marker, ws) {
-  // fetch a batch of object names/meta data from s3
-  s3.listObjects({Bucket: s3_bucket_name, Prefix: s3_image_prefix, MaxKeys: s3_batch_size, Marker: marker}, function(err, list_data) {
-    if(err != null) { console.log("s3.listObjects [err]: " + err); return; }
-    if(list_data.Contents.length > 0) {
-      var new_marker = list_data.Contents[list_data.Contents.length-1].Key;
-      var payload = new Array();
-      collect_and_stream_images(ws, list_data, 0, payload, new_marker);
-    }
-  });
-}
-
-function collect_and_stream_images(ws, list_data, index, payload, new_marker) {
-  s3.getObject({Bucket: s3_bucket_name, Key: list_data.Contents[index].Key, ResponseContentType: "image/jpeg"}, function(err, obj_data) {
-    if(err != null) console.log("s3.getObject [err]: " + err);
-    payload.push({Modified: moment(obj_data.LastModified).tz(timezone).format("dddd, MMMM Do YYYY, h:mm:ss a"), Body: obj_data.Body.toString('base64')});
-    if (index == list_data.Contents.length-1) {
-      console.log("sending " + payload.length + " images");
-      ws.send(JSON.stringify({Marker: new_marker, Images: payload}), function() {});
-    } else {
-      collect_and_stream_images(ws, list_data, index+1, payload, new_marker);
-    }
-  });
-}
-
-// initiate WebSocket server
-var wss = new WebSocketServer({server: server});
-console.log('websocket server created');
-wss.on('connection', function(ws) {
-  console.log('websocket connection open');
-  ws.on('message', function(marker) {
-    // fetch a batch of images from s3 and stream the content to the client
-    stream_images(marker, ws);
-  });
-  ws.on('close', function() {
-    console.log('websocket connection close');
-  });
-  setInterval(function(){
-    ws.send(JSON.stringify({Heartbeat: 1}));
-  }, 30 * 1000);
-});

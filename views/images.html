@@ -1,0 +1,118 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="/stylesheets/default.css">
+    <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.0.0-rc10.min.js"></script>
+  </head>
+  <body>
+    <div id="contents">
+      <div id="status"></div>
+      <div id="images"></div>
+      <input id="btn_load" type="button" value="LOAD MORE" onclick="load_more();" style="display:none" />
+    </div>
+    <script type="text/javascript">
+      // number of images to fetch from s3 in each batch
+      var batch_size = 10;
+
+      // global variable used to track how many
+      // images remain to fetch from s3 in a batch
+      var images_to_load = 0;
+
+      // global variable used to track progress
+      // iterating through and fetching s3 images
+      var image_index = 0;
+
+      // array of image data fetched as batch from s3
+      var images = new Array();
+
+      //AWS.config.update({accessKeyId: '', secretAccessKey: ''});
+      var bucketName = '{{ s3_bucket_name }}';
+      var roleArn = '{{ aws_role_arn }}';
+      var access_token = '{{ access_token }}';
+      var bucket = new AWS.S3({params: {Bucket: bucketName}});
+      bucket.config.credentials = new AWS.WebIdentityCredentials({
+        ProviderId: 'www.amazon.com',
+        RoleArn: roleArn,
+        WebIdentityToken: access_token
+      });
+
+      // fetch list of images in s3 bucket
+      bucket.listObjects(function (err, data) {
+        if (err) {
+          print_status('Could not list S3 objects');
+        } else {
+          images = data.Contents;
+          print_status(images.length + ' images available');
+          load_images(batch_size);
+        }
+      });
+
+      function load_more() {
+        toggle_button_visible(false);
+        load_images(batch_size);
+      }
+
+      function load_images(num) {
+        images_to_load = num;
+
+        // increment image index until target is reached
+        var target_index = image_index+num;
+        while (image_index < target_index) {
+
+          // create timestamp label placeholder
+          var lbl = document.createElement('div');
+          lbl.setAttribute('id', 'lbl_' + images[image_index].Key);
+          lbl.className = 'lbl-cell';
+          document.getElementById('images').appendChild(lbl);
+
+          // create image placeholder
+          var img = document.createElement('img');
+          img.setAttribute('id', 'img_' + images[image_index].Key);
+          img.className = 'image-cell';
+          document.getElementById('images').appendChild(img);
+
+          // placeholders are added to the DOM before actual
+          // image data is fetched to preserve ordering since
+          // fetching image content from s3 is asynchronous
+          load_image(images[image_index].Key);
+
+          image_index++;
+        }
+      }
+
+      function load_image(key) {
+        var params = {
+            Bucket: bucketName,
+            Key: key,
+            ResponseContentType: 'image/jpeg'
+        };
+        // fetch image object from s3
+        var request = bucket.getObject(params, function(err, data) {
+          if (err) {
+            print_status('Could not load ' + key + ' from S3');
+          } else {
+            // populate timestamp and image content
+            document.getElementById('lbl_' + key).innerHTML = (new Date(data.LastModified)).toString();
+            document.getElementById('img_' + key).src = 'data:image/jpeg;base64, ' + data.Body.toString('base64');
+          }
+
+          // regardless of success or failure, decrement
+          // number of images left to load
+          images_to_load--;
+          if(images_to_load == 0) toggle_button_visible(true);
+        });
+        // set request timeout
+        setTimeout(request.abort.bind(request), 15000);
+      }
+
+      function print_status(msg) {
+        document.getElementById('status').innerHTML += msg + '\r\n';
+      }
+
+      function toggle_button_visible(value) {
+        document.getElementById('btn_load').style.display = (value==true ? "block" : "none");
+      }
+    </script>
+  </body>
+</html>
+
